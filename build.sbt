@@ -27,7 +27,6 @@ val commonSettings = Seq(
 
 lazy val http = (project in file("http"))
   .settings(commonSettings)
-  //  .enablePlugins(GuardrailPlugin)
   .settings(
     Compile / guardrailTasks += ScalaServer(file("api/mlApi.yaml"), pkg = "http.generated", framework = "http4s")
   )
@@ -72,4 +71,6 @@ lazy val employmentsInfrastructure = (project in file("/modules/employments/infr
   .dependsOn(employmentsDomain)
 
 lazy val root = (project in file("."))
+  .settings(name := "wagewise-ml")
+  .enablePlugins(GuardrailPlugin, DockerPlugin, JavaAppPackaging)
   .aggregate(http, ml, employmentsDomain, employmentsInfrastructure)

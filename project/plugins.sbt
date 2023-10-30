@@ -8,4 +8,7 @@ addSbtPlugin("io.spray"   % "sbt-revolver"  % "0.9.1")
 /* TODO: Check if it's needed for docker auto images with compose
   https://stackoverflow.com/questions/45531198/warnings-while-building-scala-spark-project-with-sbt
  */
-//addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")
+dependencyOverrides ++= Seq(
+  "org.scala-lang.modules" % "scala-xml_2.12" % "2.1.0",
+)
