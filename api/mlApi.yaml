@@ -1,0 +1,163 @@
+openapi: "3.0.3"
+info:
+  title: WageWise ML API
+  version: 0.0.1
+  contact:
+    name: Mateusz
+    url: https://github.com/matgalv2
+servers:
+  - url: http://localhost:8080
+    description: local dev
+paths:
+  /predictSalary:
+    post:
+      operationId: predictSalary
+      x-jvm-package: ml
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Programmers"
+      responses:
+        200:
+          description: Successfully estimated salaries!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictedSalaries'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Programmer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date_of_employment:
+          type: string
+          format: date
+          pattern: "YYYY-MM-DD"
+        age:
+          type: integer
+          format: int32
+        sex:
+          type: string
+          enum: ['F', 'M']
+        country:
+          type: string
+        experience_years_it:
+          type: integer
+          format: int32
+        languages:
+          type: string
+        speciality:
+          type: string
+          enum: ['Systems analyst', 'Backend', 'Software Engineer', 'Tech lead', 'DB Administrator', 'Data quality manager', 'IT Security specialist', 'Computer scientist', 'Web administrator', 'Other', 'Applications engineer', 'Data scientist', 'Cloud system engineer', 'Frontend']
+        core_programming_language:
+          type: string
+          enum: ['Swift', 'Python', 'Java', 'JavaScript', 'R', 'Objective-C', 'Kotlin', 'PHP', 'Cobol', 'Go', 'Other', 'Ruby']
+        academic_title:
+          type: string
+          enum: ['Licence', 'No degree', 'Master', 'Bachelor', 'Doctorate']
+        education_towards_it:
+          type: boolean
+        company_country:
+          type: string
+        company_type:
+          type: string
+          enum: ['Software house', 'Public institution', 'Corporation', 'Company', 'Big tech', 'Startup', 'Other']
+        work_form:
+          type: string
+          enum: ['remote', 'hybrid', 'stationary']
+        team_size:
+          type: integer
+          format: int32
+        team_type:
+          type: string
+          enum: ['international', 'local']
+        form_of_employment:
+          type: string
+          enum: ['contractor', 'employee']
+        full_time:
+          type: boolean
+        paid_days_off:
+          type: boolean
+        insurance:
+          type: boolean
+        training_sessions:
+          type: boolean
+      required:
+        - id
+        - date_of_employment
+        - age
+        - sex
+        - country
+        - experience_years_it
+        - languages
+        - speciality
+        - core_programming_language
+        - academic_title
+        - education_towards_it
+        - company_country
+        - company_type
+        - work_form
+        - team_size
+        - team_type
+        - form_of_employment
+        - full_time
+        - paid_days_off
+        - insurance
+        - training_sessions
+
+    Programmers:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: "#/components/schemas/Programmer"
+      required:
+        - value
+
+    PredictedSalary:
+      type: object
+      properties:
+        programmer_id:
+          type: string
+          format: uuid
+        salary_monthly:
+          type: number
+        rate_per_hour:
+          type: number
+      required:
+        - programmer_id
+        - salary_monthly
+        - rate_per_hour
+
+    PredictedSalaries:
+      type: object
+      properties:
+        salaries:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictedSalary"
+      required:
+        - salaries
+
+    ErrorResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+      required:
+        - messages
