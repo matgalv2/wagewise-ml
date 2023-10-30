@@ -1,0 +1,8 @@
+# Project exclude paths
+/http/target/streams/
+/modules/employments/domain/target/streams/
+/modules/employments/infrastructure/target/streams/
+/modules/ml/target/streams/
+/project/project/target/
+/project/target/
+/target/streams/
