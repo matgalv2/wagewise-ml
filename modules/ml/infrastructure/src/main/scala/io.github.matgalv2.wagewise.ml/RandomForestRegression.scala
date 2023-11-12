@@ -1,6 +1,7 @@
 package io.github.matgalv2.wagewise.ml
 
-import io.github.matgalv2.wagewise.ml.Processing.ProgrammerFeatures
+import io.github.matgalv2.wagewise.ml.converters.employment.EmploymentModelOps
+import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.ml.regression.RandomForestRegressor
 import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
@@ -10,6 +11,9 @@ import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.feature.OneHotEncoder
 import org.apache.spark.sql
 import org.apache.spark.sql.types.{BooleanType, DateType, FloatType, IntegerType}
+import zio.ZLayer
+
+
 
 object RandomForestRegression {
   // Step 1: Create a SparkSession
@@ -103,15 +107,16 @@ object RandomForestRegression {
     .setMetricName("rmse")
 
   private val rmse = evaluator.evaluate(predictions)
-  println(s"Root Mean Squared Error (RMSE): $rmse")
 
 //  predictions.show()
 
-  def makePrediction(row: Seq[ProgrammerFeatures]): Seq[Double] = {
+//  def predict(row: Seq[SalaryPredictor.ProgrammerFeatures]): UIO[Seq[Double]] = {
+  def predict(row: Seq[SalaryPredictor.ProgrammerFeatures]): Seq[Double] = {
     val df = spark
       .createDataFrame(spark.sparkContext.parallelize(Processing.exampleEmployments))
       .toDF(Processing.columns: _*)
-    val unknown_df = spark.createDataFrame(row)
+
+    val unknown_df = spark.createDataFrame(row.map(_.toModelFeatures))
     val unionised  = castFieldsType(df.union(unknown_df))
 
 //    val dataCleaned   = unionised.na.fill(0)
@@ -120,7 +125,11 @@ object RandomForestRegression {
     val predictions = model.transform(assembledData)
     predictions.show()
 
+//    ZIO.succeed(predictions.tail(row.size).map(_.getAs[Double]("prediction")))
     predictions.tail(row.size).map(_.getAs[Double]("prediction"))
   }
+
+  val layer =
+    ZLayer.succeed(RandomForestRegression)
 
 }

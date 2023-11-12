@@ -1,4 +1,4 @@
-package io.github.matgalv2.wagewise.ml
+package io.github.matgalv2.wagewise.ml.predictor
 
 sealed trait PredictorError
 

@@ -389,27 +389,5 @@ object Processing {
     "team_type",
     "form_of_employment"
   )
-  type ProgrammerFeatures = (
-    String,
-    Int,
-    String,
-    String,
-    Int,
-    String,
-    String,
-    String,
-    String,
-    String,
-    Double,
-    String,
-    String,
-    String,
-    Int,
-    String,
-    String,
-    Boolean,
-    Boolean,
-    Boolean,
-    Boolean
-  )
+
 }
