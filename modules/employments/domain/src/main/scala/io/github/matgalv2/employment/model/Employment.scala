@@ -2,10 +2,11 @@ package io.github.matgalv2.employment.model
 
 final case class Employment(
   dateOfEmployment: java.time.LocalDate,
-  age: BigInt,
+  age: Int,
+  rate_per_hour: Double,
   sex: Sex,
   country: String,
-  experienceYearsIt: BigInt,
+  experienceYearsIt: Int,
   languages: String,
   speciality: Speciality,
   coreProgrammingLanguage: CoreProgrammingLanguage,
@@ -14,7 +15,7 @@ final case class Employment(
   companyCountry: String,
   companyType: CompanyType,
   workForm: WorkForm,
-  teamSize: BigInt,
+  teamSize: Int,
   teamType: TeamType,
   formOfEmployment: FormOfEmployment,
   fullTime: Boolean,
