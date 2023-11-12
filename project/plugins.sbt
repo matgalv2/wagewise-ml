@@ -9,6 +9,8 @@ addSbtPlugin("io.spray"   % "sbt-revolver"  % "0.9.1")
   https://stackoverflow.com/questions/45531198/warnings-while-building-scala-spark-project-with-sbt
  */
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")
+/* Check if needed */
+resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 dependencyOverrides ++= Seq(
   "org.scala-lang.modules" % "scala-xml_2.12" % "2.1.0",
 )
