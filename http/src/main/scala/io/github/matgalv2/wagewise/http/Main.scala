@@ -1,18 +1,16 @@
 package io.github.matgalv2.wagewise.http
 
 import io.github.matgalv2.wagewise.ml.RandomForestRegression
-import zio.{ App, ZEnv }
+import zio.{App, ExitCode, URIO, ZEnv}
 
-import java.time.LocalDate
 
 object Main extends App {
 
-  def run(args: List[String]) = {
-
+  def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
+    val _ = RandomForestRegression
     print("Starting server at localhost:8080\n")
-    val regressor = RandomForestRegression
     Controller.inMemoryProg.exitCode
-      .provideSomeLayer[ZEnv](httpServer.httpServer.HttpServer.live)
+      .provideSomeLayer[ZEnv](HttpServer.live)
   }
 
 }
