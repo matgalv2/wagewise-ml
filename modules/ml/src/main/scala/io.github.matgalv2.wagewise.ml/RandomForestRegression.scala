@@ -1,16 +1,15 @@
 package io.github.matgalv2.wagewise.ml
 
 import io.github.matgalv2.wagewise.ml.Processing.ProgrammerFeatures
-import org.apache.hadoop.shaded.org.eclipse.jetty.websocket.common.frames.DataFrame
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.ml.regression.{ GBTRegressor, RandomForestRegressor }
-import org.apache.spark.ml.feature.{ StringIndexer, VectorAssembler }
+import org.apache.spark.ml.regression.RandomForestRegressor
+import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.sql.functions._
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.feature.OneHotEncoder
 import org.apache.spark.sql
-import org.apache.spark.sql.types.{ BooleanType, DateType, FloatType, IntegerType }
+import org.apache.spark.sql.types.{BooleanType, DateType, FloatType, IntegerType}
 
 object RandomForestRegression {
   // Step 1: Create a SparkSession
@@ -42,7 +41,7 @@ object RandomForestRegression {
     spark.read
       .option("header", "true")
       .option("delimiter", ";")
-      .csv("modules/ml/src/main/resources/employments.csv")
+      .csv(System.getenv("EMPLOYMENTS_DATASET_PATH"))
       .drop("salary_monthly", "data_source", "education")
 
   private val data = castFieldsType(dataFrameFromFile)
@@ -73,6 +72,7 @@ object RandomForestRegression {
       "insurance",
       "training_sessions"
     ) ++ oneHotCols.map(_ + "_onehot")
+
     val assembler = new VectorAssembler()
       .setInputCols(featureCols)
       .setOutputCol("features")
@@ -91,7 +91,7 @@ object RandomForestRegression {
     .setLabelCol("rate_per_hour")
     .setFeaturesCol("features")
     .setSeed(1234L)
-    .setNumTrees(150)
+    .setNumTrees(200)
 
   private val model = rf.fit(trainingData)
 
@@ -100,28 +100,27 @@ object RandomForestRegression {
   private val evaluator = new RegressionEvaluator()
     .setLabelCol("rate_per_hour")
     .setPredictionCol("prediction")
-    .setMetricName("rmse") // You can choose a different metric if needed
+    .setMetricName("rmse")
 
   private val rmse = evaluator.evaluate(predictions)
   println(s"Root Mean Squared Error (RMSE): $rmse")
 
 //  predictions.show()
 
-  def makePrediction(row: Seq[ProgrammerFeatures]): Double = {
+  def makePrediction(row: Seq[ProgrammerFeatures]): Seq[Double] = {
     val df = spark
       .createDataFrame(spark.sparkContext.parallelize(Processing.exampleEmployments))
       .toDF(Processing.columns: _*)
     val unknown_df = spark.createDataFrame(row)
     val unionised  = castFieldsType(df.union(unknown_df))
 
-    val dataCleaned   = unionised.na.fill(0)
-    val assembledData = assembleData(dataCleaned)
+//    val dataCleaned   = unionised.na.fill(0)
+    val assembledData = assembleData(unionised)
 
     val predictions = model.transform(assembledData)
-
     predictions.show()
 
-    predictions.collect().last.getAs[Double]("prediction")
+    predictions.tail(row.size).map(_.getAs[Double]("prediction"))
   }
 
 }
