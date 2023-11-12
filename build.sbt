@@ -3,7 +3,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 //name := "wage-wise-ml"
 //version := "0.1"
 ThisBuild / scalaVersion := "2.13.12"
-ThisBuild / name := "salary-predictor"
+ThisBuild / name := "wagewise-ml"
 
 // Convenience for cross-compat testing
 ThisBuild / crossScalaVersions := Seq("2.12.14", "2.13.12")
@@ -25,11 +25,15 @@ val commonSettings = Seq(
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 )
 
+//Universal / mappings += ((sourceDirectory.value / "src/main/resources/employments.csv"), "src/main/resources/employments.csv")
+
 lazy val http = (project in file("http"))
   .settings(commonSettings)
   .settings(
     Compile / guardrailTasks += ScalaServer(file("api/mlApi.yaml"), pkg = "http.generated", framework = "http4s")
   )
+  .enablePlugins(GuardrailPlugin, DockerPlugin, JavaAppPackaging)
+  .settings(Settings.docker: _*)
   .settings(
     libraryDependencies ++= Seq(
       // Depend on http4s-managed cats and circe
@@ -72,5 +76,4 @@ lazy val employmentsInfrastructure = (project in file("/modules/employments/infr
 
 lazy val root = (project in file("."))
   .settings(name := "wagewise-ml")
-  .enablePlugins(GuardrailPlugin, DockerPlugin, JavaAppPackaging)
   .aggregate(http, ml, employmentsDomain, employmentsInfrastructure)
