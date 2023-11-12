@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/40511337/how-copy-resources-files-with-sbt-docker-plugin
