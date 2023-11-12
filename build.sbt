@@ -58,12 +58,19 @@ lazy val http = (project in file("http"))
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
-  .dependsOn(ml, employmentsDomain, employmentsInfrastructure)
+  .dependsOn(mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure)
 
-lazy val ml = (project in file("/modules/ml"))
-  .settings(name := "ml")
+lazy val mlDomain = (project in file("/modules/ml/domain"))
+  .settings(name := "ml-domain")
+  .settings(libraryDependencies += Dependencies.zio.zio)
+  .dependsOn(employmentsDomain)
+
+lazy val mlInfrastructure = (project in file("/modules/ml/infrastructure"))
+  .settings(name := "ml-infrastructure")
+  .settings(libraryDependencies += Dependencies.zio.zio)
   .settings(libraryDependencies += Dependencies.spark.core)
   .settings(libraryDependencies += Dependencies.spark.mllib)
+  .dependsOn(mlDomain, employmentsDomain)
 
 lazy val employmentsDomain = (project in file("/modules/employments/domain"))
   .settings(name := "employments-domain")
@@ -76,4 +83,4 @@ lazy val employmentsInfrastructure = (project in file("/modules/employments/infr
 
 lazy val root = (project in file("."))
   .settings(name := "wagewise-ml")
-  .aggregate(http, ml, employmentsDomain, employmentsInfrastructure)
+  .aggregate(http, mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure)
