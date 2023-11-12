@@ -44,7 +44,7 @@ object Dependencies {
   }
 
   object V {
-    val zio         = "1.0.9"
+    val zio         = "1.0.9" //"2.0.9"
     val http4s      = "0.21.24"
     val cats        = "2.8.0"
     val catsEffect  = "2.1.0"
