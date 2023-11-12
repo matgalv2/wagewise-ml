@@ -1,10 +1,11 @@
 package io.github.matgalv2.employment.model
 
-sealed trait AcademicTitle
+sealed abstract class AcademicTitle(val value: String)
+
 object AcademicTitle {
-  final case object Licence extends AcademicTitle
-  final case object NoDegree extends AcademicTitle
-  final case object Master extends AcademicTitle
-  final case object Bachelor extends AcademicTitle
-  final case object Doctorate extends AcademicTitle
+  final case object Licence extends AcademicTitle("Licence")
+  final case object NoDegree extends AcademicTitle("No degree")
+  final case object Master extends AcademicTitle("Master")
+  final case object Bachelor extends AcademicTitle("Bachelor")
+  final case object Doctorate extends AcademicTitle("Doctorate")
 }

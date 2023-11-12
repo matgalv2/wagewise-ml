@@ -1,7 +1,8 @@
 package io.github.matgalv2.employment.model
 
-sealed trait TeamType
+sealed abstract class TeamType(val value: String)
+
 object TeamType {
-  final case object International extends TeamType
-  final case object Local extends TeamType
+  final case object International extends TeamType("international")
+  final case object Local extends TeamType("local")
 }

@@ -1,17 +1,18 @@
 package io.github.matgalv2.employment.model
 
-sealed trait CoreProgrammingLanguage
+sealed abstract class CoreProgrammingLanguage(val value: String)
+
 object CoreProgrammingLanguage {
-  final case object Swift extends CoreProgrammingLanguage
-  final case object Python extends CoreProgrammingLanguage
-  final case object Java extends CoreProgrammingLanguage
-  final case object JavaScript extends CoreProgrammingLanguage
-  final case object R extends CoreProgrammingLanguage
-  final case object ObjectiveC extends CoreProgrammingLanguage
-  final case object Kotlin extends CoreProgrammingLanguage
-  final case object Php extends CoreProgrammingLanguage
-  final case object Cobol extends CoreProgrammingLanguage
-  final case object Go extends CoreProgrammingLanguage
-  final case object Other extends CoreProgrammingLanguage
-  final case object Ruby extends CoreProgrammingLanguage
-}
+  case object Swift extends CoreProgrammingLanguage("Swift")
+  case object Python extends CoreProgrammingLanguage("Python")
+  case object Java extends CoreProgrammingLanguage("Java")
+  case object JavaScript extends CoreProgrammingLanguage("JavaScript")
+  case object R extends CoreProgrammingLanguage("R")
+  case object ObjectiveC extends CoreProgrammingLanguage("Objective-C")
+  case object Kotlin extends CoreProgrammingLanguage("Kotlin")
+  case object Php extends CoreProgrammingLanguage("PHP")
+  case object Cobol extends CoreProgrammingLanguage("Cobol")
+  case object Go extends CoreProgrammingLanguage("Go")
+  case object Other extends CoreProgrammingLanguage("Other")
+  case object Ruby extends CoreProgrammingLanguage("Ruby")
+  }
