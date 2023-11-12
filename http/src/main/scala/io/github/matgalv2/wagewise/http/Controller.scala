@@ -3,9 +3,8 @@ package io.github.matgalv2.wagewise.http
 import http.generated.definitions.Programmer
 import http.generated.ml.MlResource
 import io.github.matgalv2.wagewise.http.api.MlApi
-import io.github.matgalv2.wagewise.http.httpServer.httpServer
 import io.github.matgalv2.wagewise.http.repository.repository
-import zio.{ RIO, Ref, Runtime, ZEnv, ZIO }
+import zio.{Has, RIO, Ref, Runtime, ZEnv, ZIO}
 
 import java.time.LocalDate
 import java.util.UUID
@@ -67,11 +66,11 @@ object Controller {
   val prog =
     for {
       combinedRoutes <- combineRoutes
-      binding        <- httpServer.bindServer(combinedRoutes)
+      binding        <- HttpServer.bindServer(combinedRoutes)
       res            <- binding.use(_ => ZIO.never)
     } yield res
 
-  val inMemoryProg: ZIO[zio.ZEnv with httpServer.HttpServer, Throwable, Nothing] =
+  val inMemoryProg: ZIO[zio.ZEnv with Has[HttpServer], Throwable, Nothing] =
     prog
-      .provideSomeLayer[ZEnv with httpServer.HttpServer](inMemoryLayer)
+      .provideSomeLayer[ZEnv with Has[HttpServer]](inMemoryLayer)
 }
