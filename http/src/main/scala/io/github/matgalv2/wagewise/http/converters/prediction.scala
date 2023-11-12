@@ -1,7 +1,7 @@
 package io.github.matgalv2.wagewise.http.converters
 
-import http.generated.definitions.{PredictedSalary, Programmer}
-import io.github.matgalv2.wagewise.ml.Prediction.EarningsPrediction
+import http.generated.definitions.PredictedSalary
+import io.github.matgalv2.wagewise.ml.model.Prediction.EarningsPrediction
 
 import java.util.UUID
 
