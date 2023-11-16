@@ -1,15 +1,20 @@
 package io.github.matgalv2.wagewise.http
 
+
 import io.github.matgalv2.wagewise.ml.RandomForestRegression
-import zio.{App, ExitCode, URIO, ZEnv}
+import zio.{&, App, ExitCode, Has, URIO, ZEnv}
 
 
 object Main extends App {
 
   def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
     val _ = RandomForestRegression
-    print("Starting server at localhost:8080\n")
-    Controller.inMemoryProg.exitCode
+    print(s"Starting server at ${HttpServer.host}:${HttpServer.port}\n")
+    DummyService.log.provideLayer(DummyImpl.layer).exitCode <&
+    Controller
+      .server
+      .provideSomeLayer[ZEnv & Has[HttpServer]](DummyImpl.layer)
+      .exitCode
       .provideSomeLayer[ZEnv](HttpServer.live)
   }
 
