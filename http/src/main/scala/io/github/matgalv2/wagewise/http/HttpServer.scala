@@ -22,8 +22,8 @@ case class HttpServer(){
       EmberServerBuilder
         .default[RIO[R, *]]
         .withHttpApp(httpApp)
-        .withHost("localhost")
-        .withPort(8080)
+        .withHost(HttpServer.host)
+        .withPort(HttpServer.port)
         .build
         .toManagedZIO
     }
@@ -31,6 +31,9 @@ case class HttpServer(){
 }
 object HttpServer{
   val live: ULayer[Has[HttpServer]] = ZLayer.succeed(HttpServer())
+
+  val host = "0.0.0.0"
+  val port = 8080
 
   def bindServer[R](httpApp: org.http4s.Http[RIO[R, *], RIO[R, *]]): URIO[Has[HttpServer] with R, ZManaged[R, Throwable, Server[RIO[R, *]]]] =
     ZIO.access[Has[HttpServer] with R](_.get.bindServer(httpApp))
