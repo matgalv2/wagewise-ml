@@ -1,42 +1,46 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-//name := "wage-wise-ml"
-//version := "0.1"
+version := "0.1"
+name := "wagewise-ml"
 ThisBuild / scalaVersion := "2.13.12"
-ThisBuild / name := "wagewise-ml"
 
 // Convenience for cross-compat testing
 ThisBuild / crossScalaVersions := Seq("2.12.14", "2.13.12")
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
+ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(
+  scalaVersion.value
+)
 
 val commonSettings = Seq(
   scalacOptions ++= (if (scalaVersion.value.startsWith("2.12"))
-    Seq("-Ypartial-unification")
-  else Nil),
+                       Seq("-Ypartial-unification")
+                     else Nil),
   // Use zio-test runner
   testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
-  resolvers += Resolver.sonatypeRepo("snapshots"),
-
+  resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
   // Ensure canceling `run` releases socket, no matter what
   run / fork := true,
   // Better syntax for dealing with partially-applied types
-  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
+  addCompilerPlugin(
+    "org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full
+  ),
   // Better semantics for for comprehensions
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 )
 
-//Universal / mappings += ((sourceDirectory.value / "src/main/resources/employments.csv"), "src/main/resources/employments.csv")
-
 lazy val http = (project in file("http"))
   .settings(commonSettings)
   .settings(
-    Compile / guardrailTasks += ScalaServer(file("api/mlApi.yaml"), pkg = "http.generated", framework = "http4s")
+    Compile / guardrailTasks += ScalaServer(
+      file("api/mlApi.yaml"),
+      pkg = "http.generated",
+      framework = "http4s"
+    )
   )
   .enablePlugins(GuardrailPlugin, DockerPlugin, JavaAppPackaging)
   .settings(Settings.docker: _*)
   .settings(
     libraryDependencies ++= Seq(
-      // Depend on http4s-managed cats and circe
+      // Depends on http4s-managed cats and circe
       Dependencies.http4s.core,
       Dependencies.http4s.emberClient,
       Dependencies.http4s.emberServer,
@@ -47,6 +51,7 @@ lazy val http = (project in file("http"))
       Dependencies.zio.interopCats,
       Dependencies.zio.test,
       Dependencies.zio.testSbt,
+      Dependencies.zio.logging,
       // ZIO config
       Dependencies.zio.config.core,
       Dependencies.zio.config.typesafeConfig,
@@ -58,7 +63,12 @@ lazy val http = (project in file("http"))
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
-  .dependsOn(mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure)
+  .dependsOn(
+    mlDomain,
+    mlInfrastructure,
+    employmentsDomain,
+    employmentsInfrastructure
+  )
 
 lazy val mlDomain = (project in file("/modules/ml/domain"))
   .settings(name := "ml-domain")
@@ -76,11 +86,18 @@ lazy val employmentsDomain = (project in file("/modules/employments/domain"))
   .settings(name := "employments-domain")
   .settings(libraryDependencies += Dependencies.zio.zio)
 
-lazy val employmentsInfrastructure = (project in file("/modules/employments/infrastructure"))
-  .settings(name := "employments-infrastructure")
-  .settings(libraryDependencies += Dependencies.zio.zio)
-  .dependsOn(employmentsDomain)
+lazy val employmentsInfrastructure =
+  (project in file("/modules/employments/infrastructure"))
+    .settings(name := "employments-infrastructure")
+    .settings(libraryDependencies += Dependencies.zio.zio)
+    .dependsOn(employmentsDomain)
 
 lazy val root = (project in file("."))
   .settings(name := "wagewise-ml")
-  .aggregate(http, mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure)
+  .aggregate(
+    http,
+    mlDomain,
+    mlInfrastructure,
+    employmentsDomain,
+    employmentsInfrastructure
+  )
