@@ -8,6 +8,7 @@ object Dependencies {
     lazy val testSbt     = "dev.zio"              %% "zio-test-sbt"     % V.zio
     lazy val macros      = "dev.zio"              %% "zio-macros"       % V.zio
     lazy val magic       = "io.github.kitlangton" %% "zio-magic"        % V.zioMagic
+    lazy val logging     = "dev.zio"              %% "zio-logging"      % V.zioLogging
 
     object config {
       lazy val core           = "dev.zio" %% "zio-config"          % V.zioConfig
@@ -55,5 +56,6 @@ object Dependencies {
     val comcast     = "3.1.3"
     val zioConfig   = "1.0.10"
     val slf4jCats   = "1.3.1"
+    val zioLogging  = "0.5.13"
   }
 }
