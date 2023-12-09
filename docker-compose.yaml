@@ -11,7 +11,7 @@ services:
     depends_on:
       - mongodb
   mongodb:
-    image: mongo:latest # use the latest image.
+    image: mongo:latest
     container_name: mongodb
     restart: unless-stopped
     ports:
@@ -19,6 +19,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
-    volumes: # optional to preserve database after container is deleted.
+    volumes:
       - ./dev/mongo-data:/data/db
       - ./dev/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
