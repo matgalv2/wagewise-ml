@@ -1,11 +1,12 @@
 package io.github.matgalv2.wagewise.http
 
 import org.http4s.server.Server
-import zio.{Has, RIO, Runtime, ULayer, URIO, ZIO, ZLayer, ZManaged}
+import zio.{ Has, RIO, Runtime, ULayer, URIO, ZIO, ZLayer, ZManaged }
 
-case class HttpServer(){
-  def bindServer[R](httpApp: org.http4s.Http[RIO[R, *], RIO[R, *]]): ZManaged[R, Throwable, org.http4s.server.Server[RIO[R, *]]] =
-  {
+case class HttpServer() {
+  def bindServer[R](
+    httpApp: org.http4s.Http[RIO[R, *], RIO[R, *]]
+  ): ZManaged[R, Throwable, org.http4s.server.Server[RIO[R, *]]] = {
     import zio.interop.catz._
     import zio.interop.catz.implicits._
 
@@ -29,13 +30,15 @@ case class HttpServer(){
     }
   }
 }
-object HttpServer{
+object HttpServer {
   val live: ULayer[Has[HttpServer]] = ZLayer.succeed(HttpServer())
 
   val host = "0.0.0.0"
   val port = 8080
 
-  def bindServer[R](httpApp: org.http4s.Http[RIO[R, *], RIO[R, *]]): URIO[Has[HttpServer] with R, ZManaged[R, Throwable, Server[RIO[R, *]]]] =
+  def bindServer[R](
+    httpApp: org.http4s.Http[RIO[R, *], RIO[R, *]]
+  ): URIO[Has[HttpServer] with R, ZManaged[R, Throwable, Server[RIO[R, *]]]] =
     ZIO.access[Has[HttpServer] with R](_.get.bindServer(httpApp))
 
 }
