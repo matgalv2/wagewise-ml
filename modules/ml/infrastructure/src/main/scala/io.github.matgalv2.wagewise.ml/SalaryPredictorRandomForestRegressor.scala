@@ -1,36 +1,78 @@
 package io.github.matgalv2.wagewise.ml
 
-import io.github.matgalv2.wagewise.ml.MlError.{ DatasetCannotBeFound, EnvironmentVariableIsNotSet }
-import io.github.matgalv2.wagewise.ml.MlError.SparkError.MasterURLCannotBeParsed
+import io.github.matgalv2.wagewise.logging.Logger
+import io.github.matgalv2.wagewise.ml.MlError.{ DatasetCannotBeFound, EnvironmentVariableIsNotSet, SparkError }
+import io.github.matgalv2.wagewise.ml.MlError.SparkError.{ CannotCastData, MasterURLCannotBeParsed }
+import io.github.matgalv2.wagewise.ml.SalaryPredictorRandomForestRegressor.assembleData
 import io.github.matgalv2.wagewise.ml.converters.employment.EmploymentModelOps
 import io.github.matgalv2.wagewise.ml.predictor.{ PredictorError, SalaryPredictor }
 import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor.ProgrammerFeatures
-import org.apache.spark.sql.{ DataFrame, SparkSession }
+import org.apache.spark.sql.{ DataFrame, Dataset, Row, SparkSession }
 import org.apache.spark.ml.regression.{ RandomForestRegressionModel, RandomForestRegressor }
 import org.apache.spark.ml.feature.{ StringIndexer, VectorAssembler }
 import org.apache.spark.sql.functions._
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.OneHotEncoder
 import org.apache.spark.sql
 import org.apache.spark.sql.types.{ BooleanType, DateType, FloatType, IntegerType }
-import zio.{ Has, IO, ULayer, ZIO, ZLayer }
+import zio.{ &, Has, IO, ZEnv, ZIO, ZLayer }
 
 import scala.util.Try
 
-final case class RandomForestRegression() extends SalaryPredictor {
+final case class SalaryPredictorRandomForestRegressor(model: RandomForestRegressionModel, spark: SparkSession)
+    extends SalaryPredictor {
 
-  private val spark: ZIO[Any, MasterURLCannotBeParsed, SparkSession] =
+  override def predict(programmers: Seq[ProgrammerFeatures]): IO[PredictorError, Seq[Double]] =
+    for {
+      df <- ZIO.succeed(
+        spark
+          .createDataFrame(spark.sparkContext.parallelize(Processing.exampleEmployments))
+          .toDF(Processing.columns: _*)
+      )
+      providedEntities = spark.createDataFrame(programmers.map(_.toModelFeatures))
+      unionised <- ZIO
+        .fromTry(Try(SalaryPredictorRandomForestRegressor.castFieldsType(df.union(providedEntities))))
+        .orElseFail(CannotCastData(providedEntities.toString()))
+      assembledData = assembleData(unionised)
+      predictions   = model.transform(assembledData)
+      _             = predictions.show()
+    } yield predictions.tail(programmers.size).map(_.getAs[Double]("prediction"))
+
+}
+
+object SalaryPredictorRandomForestRegressor {
+  private val SPARK_MASTER_URL = "local"
+  private val SPARK_APP_NAME   = "SalaryPredictor"
+  // Step 1: Create a SparkSession
+
+  import org.apache.log4j
+  org.apache.log4j.Logger.getRootLogger.setLevel(org.apache.log4j.Level.OFF)
+
+  private def castFieldsType(dataFrame: sql.DataFrame) =
+    dataFrame
+      .withColumn("rate_per_hour", col("rate_per_hour").cast(FloatType))
+      .withColumn("age", col("age").cast(IntegerType))
+      .withColumn("experience_years_it", col("experience_years_it").cast(IntegerType))
+      .withColumn("team_size", col("team_size").cast(IntegerType))
+      .withColumn("full_time", col("full_time").cast(BooleanType))
+      .withColumn("paid_days_off", col("paid_days_off").cast(BooleanType))
+      .withColumn("insurance", col("insurance").cast(BooleanType))
+      .withColumn("training_sessions", col("training_sessions").cast(BooleanType))
+      .withColumn("date_of_employment", col("date_of_employment").cast(DateType))
+
+  private val spark: ZIO[Any, SparkError, SparkSession] =
     ZIO
       .fromTry(
         Try(
           SparkSession
             .builder()
-            .master(RandomForestRegression.SPARK_MASTER_URL)
-            .appName(RandomForestRegression.SPARK_APP_NAME)
+            .master(SalaryPredictorRandomForestRegressor.SPARK_MASTER_URL)
+            .appName(SalaryPredictorRandomForestRegressor.SPARK_APP_NAME)
             .getOrCreate()
         )
       )
-      .orElseFail(MasterURLCannotBeParsed(RandomForestRegression.SPARK_MASTER_URL))
+      .orElseFail(MasterURLCannotBeParsed(SalaryPredictorRandomForestRegressor.SPARK_MASTER_URL))
 
   // Step 2: Load the data into a DataFrame
   private val data: ZIO[Any, MlError, DataFrame] =
@@ -45,7 +87,7 @@ final case class RandomForestRegression() extends SalaryPredictor {
       csv <- ZIO
         .fromTry(Try(readWithOptions.csv(path)))
         .orElseFail(DatasetCannotBeFound(path))
-      data = RandomForestRegression.castFieldsType(csv)
+      data = SalaryPredictorRandomForestRegressor.castFieldsType(csv)
     } yield data
 
   private def assembleData(dataset: sql.DataFrame) = {
@@ -95,45 +137,33 @@ final case class RandomForestRegression() extends SalaryPredictor {
     .setSeed(1234L)
     .setNumTrees(200)
 
-  private val model: IO[MlError, RandomForestRegressionModel] = splitData.map { x =>
+  private def getModel: IO[MlError, RandomForestRegressionModel] = splitData.map { x =>
     val Array(trainingData, _) = x
     rf.fit(trainingData)
   }
 
-  override def predict(programmers: Seq[ProgrammerFeatures]): IO[PredictorError, Seq[Double]] =
+  private def evaluate(model: RandomForestRegressionModel) = splitData.map { x =>
+    val Array(_, testData) = x
+    val predictions        = model.transform(testData)
+    val evaluator = new RegressionEvaluator()
+      .setLabelCol("rate_per_hour")
+      .setPredictionCol("prediction")
+      .setMetricName("rmse")
+
+    evaluator.evaluate(predictions)
+  }
+
+  def create: IO[MlError, SalaryPredictorRandomForestRegressor] =
     for {
+//      _    <- Logger.info("Creating random forest regressor")
+      rfr  <- getModel
+      rmse <- evaluate(rfr)
+//      _ = Logger.info(f"Finished training model (root mean square error: $rmse)")
       sparkSession <- spark
-      df = sparkSession
-        .createDataFrame(sparkSession.sparkContext.parallelize(Processing.exampleEmployments))
-        .toDF(Processing.columns: _*)
-      providedEntities = sparkSession.createDataFrame(programmers.map(_.toModelFeatures))
-      unionised        = RandomForestRegression.castFieldsType(df.union(providedEntities))
-      assembledData    = assembleData(unionised)
-      rfr <- model
-      predictions = rfr.transform(assembledData)
-    } yield predictions.tail(programmers.size).map(_.getAs[Double]("prediction"))
-}
+    } yield SalaryPredictorRandomForestRegressor(rfr, sparkSession)
 
-object RandomForestRegression {
-  private val SPARK_MASTER_URL = "local"
-  private val SPARK_APP_NAME   = "SalaryPredictor"
-  // Step 1: Create a SparkSession
-
-  import org.apache.log4j.Logger
-  import org.apache.log4j.Level
-  Logger.getRootLogger.setLevel(Level.OFF)
-
-  private def castFieldsType(dataFrame: sql.DataFrame) =
-    dataFrame
-      .withColumn("rate_per_hour", col("rate_per_hour").cast(FloatType))
-      .withColumn("age", col("age").cast(IntegerType))
-      .withColumn("experience_years_it", col("experience_years_it").cast(IntegerType))
-      .withColumn("team_size", col("team_size").cast(IntegerType))
-      .withColumn("full_time", col("full_time").cast(BooleanType))
-      .withColumn("paid_days_off", col("paid_days_off").cast(BooleanType))
-      .withColumn("insurance", col("insurance").cast(BooleanType))
-      .withColumn("training_sessions", col("training_sessions").cast(BooleanType))
-      .withColumn("date_of_employment", col("date_of_employment").cast(DateType))
+  val layer: ZLayer[Any, MlError, Has[SalaryPredictor]] =
+    SalaryPredictorRandomForestRegressor.create.toLayer
   /*
   private val spark = SparkSession
     .builder()
@@ -228,8 +258,4 @@ object RandomForestRegression {
     predictions.tail(row.size).map(_.getAs[Double]("prediction"))
   }
    */
-
-  val layer: ULayer[Has[SalaryPredictor]] =
-    ZLayer.succeed(RandomForestRegression())
-
 }
