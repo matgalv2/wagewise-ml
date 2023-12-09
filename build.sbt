@@ -6,9 +6,7 @@ ThisBuild / scalaVersion := "2.13.12"
 
 // Convenience for cross-compat testing
 ThisBuild / crossScalaVersions := Seq("2.12.14", "2.13.12")
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(
-  scalaVersion.value
-)
+ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 
 val commonSettings = Seq(
   scalacOptions ++= (if (scalaVersion.value.startsWith("2.12"))
@@ -20,9 +18,7 @@ val commonSettings = Seq(
   // Ensure canceling `run` releases socket, no matter what
   run / fork := true,
   // Better syntax for dealing with partially-applied types
-  addCompilerPlugin(
-    "org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full
-  ),
+  addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
   // Better semantics for for comprehensions
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 )
@@ -30,11 +26,7 @@ val commonSettings = Seq(
 lazy val http = (project in file("http"))
   .settings(commonSettings)
   .settings(
-    Compile / guardrailTasks += ScalaServer(
-      file("api/mlApi.yaml"),
-      pkg = "http.generated",
-      framework = "http4s"
-    )
+    Compile / guardrailTasks += ScalaServer(file("api/mlApi.yaml"), pkg = "http.generated", framework = "http4s")
   )
   .enablePlugins(GuardrailPlugin, DockerPlugin, JavaAppPackaging)
   .settings(Settings.docker: _*)
@@ -63,12 +55,7 @@ lazy val http = (project in file("http"))
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
-  .dependsOn(
-    mlDomain,
-    mlInfrastructure,
-    employmentsDomain,
-    employmentsInfrastructure
-  )
+  .dependsOn(mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure, logging)
 
 lazy val mlDomain = (project in file("/modules/ml/domain"))
   .settings(name := "ml-domain")
@@ -80,7 +67,7 @@ lazy val mlInfrastructure = (project in file("/modules/ml/infrastructure"))
   .settings(libraryDependencies += Dependencies.zio.zio)
   .settings(libraryDependencies += Dependencies.spark.core)
   .settings(libraryDependencies += Dependencies.spark.mllib)
-  .dependsOn(mlDomain, employmentsDomain)
+  .dependsOn(mlDomain, employmentsDomain, logging)
 
 lazy val employmentsDomain = (project in file("/modules/employments/domain"))
   .settings(name := "employments-domain")
@@ -90,14 +77,12 @@ lazy val employmentsInfrastructure =
   (project in file("/modules/employments/infrastructure"))
     .settings(name := "employments-infrastructure")
     .settings(libraryDependencies += Dependencies.zio.zio)
-    .dependsOn(employmentsDomain)
+    .dependsOn(employmentsDomain, logging)
+
+lazy val logging = (project in file("/modules/common/logging"))
+  .settings(name := "logging")
+  .settings(libraryDependencies += Dependencies.zio.zio)
 
 lazy val root = (project in file("."))
   .settings(name := "wagewise-ml")
-  .aggregate(
-    http,
-    mlDomain,
-    mlInfrastructure,
-    employmentsDomain,
-    employmentsInfrastructure
-  )
+  .aggregate(http, mlDomain, mlInfrastructure, employmentsDomain, employmentsInfrastructure, logging)
