@@ -38,11 +38,7 @@ object Controller {
     for {
       combinedRoutes <- combineRoutes
       binding        <- HttpServer.bindServer(combinedRoutes)
+      _              <- Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
       res            <- binding.use(_ => ZIO.never)
-      _              <- Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
-      _              <- Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
-      _              <- Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
     } yield res
-//  } <& Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
-
 }
