@@ -42,7 +42,6 @@ final case class SalaryPredictorRandomForestRegressor(model: RandomForestRegress
         .orElseFail(CannotCastData(providedEntities.toString()))
       assembledData = assembleData(unionised)
       predictions   = model.transform(assembledData)
-      _             = predictions.show()
     } yield predictions.tail(programmers.size).map(_.getAs[Double]("prediction"))
 
 }
