@@ -1,28 +1,22 @@
 package io.github.matgalv2.wagewise.ml
 
 import io.github.matgalv2.wagewise.logging.Logger
+import io.github.matgalv2.wagewise.ml.MlError.SparkError.{ CannotCastData, CannotSaveModel, MasterURLCannotBeParsed }
 import io.github.matgalv2.wagewise.ml.MlError.{ DatasetCannotBeFound, EnvironmentVariableIsNotSet, SparkError }
-import io.github.matgalv2.wagewise.ml.MlError.SparkError.{
-  CannotCastData,
-  CannotSaveModel,
-  MasterURLCannotBeParsed,
-  ModelNotFound
-}
 import io.github.matgalv2.wagewise.ml.SalaryPredictorRandomForestRegressor.assembleData
 import io.github.matgalv2.wagewise.ml.converters.employment.EmploymentModelOps
-import io.github.matgalv2.wagewise.ml.predictor.{ PredictorError, SalaryPredictor }
 import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor.ProgrammerFeatures
-import org.apache.spark.sql.{ DataFrame, Dataset, Row, SparkSession }
-import org.apache.spark.ml.regression.{ RandomForestRegressionModel, RandomForestRegressor }
-import org.apache.spark.ml.feature.{ StringIndexer, VectorAssembler }
-import org.apache.spark.sql.functions._
+import io.github.matgalv2.wagewise.ml.predictor.{ PredictorError, SalaryPredictor }
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
-import org.apache.spark.ml.feature.OneHotEncoder
+import org.apache.spark.ml.feature.{ OneHotEncoder, StringIndexer, VectorAssembler }
+import org.apache.spark.ml.regression.{ RandomForestRegressionModel, RandomForestRegressor }
 import org.apache.spark.ml.util.MLWritable
 import org.apache.spark.sql
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{ BooleanType, DateType, FloatType, IntegerType }
-import zio.{ &, Has, IO, UIO, ZEnv, ZIO, ZLayer }
+import org.apache.spark.sql.{ DataFrame, SparkSession }
+import zio.{ Has, IO, ZIO, ZLayer }
 
 import scala.util.Try
 
@@ -51,8 +45,6 @@ object SalaryPredictorRandomForestRegressor {
   private val SPARK_APP_NAME    = "SalaryPredictor"
   private val EVALUATION_METRIC = "mse"
   // Step 1: Create a SparkSession
-
-  import org.apache.log4j
   org.apache.log4j.Logger.getRootLogger.setLevel(org.apache.log4j.Level.OFF)
 
   private def castFieldsType(dataFrame: sql.DataFrame) =
@@ -132,7 +124,6 @@ object SalaryPredictorRandomForestRegressor {
   private val assembledData = data.map(assembleData)
 
   // Split the data into training and testing sets
-  //  private val Array(trainingData, testData) =
   private val splitData =
     assembledData.map(_.randomSplit(Array(0.7, 0.3)))
 
