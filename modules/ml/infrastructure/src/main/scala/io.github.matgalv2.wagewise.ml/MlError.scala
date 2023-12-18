@@ -17,6 +17,8 @@ object MlError {
 
     // too broad error - it must be divide into many smaller ones
     final case object AssemblingDataFailed extends SparkError
+    final case class ModelNotFound(path: String) extends SparkError
+    final case class CannotSaveModel(path: String) extends SparkError
   }
 
   final case class EnvironmentVariableIsNotSet(env: String) extends MlError
