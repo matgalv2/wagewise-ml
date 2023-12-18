@@ -2,7 +2,12 @@ package io.github.matgalv2.wagewise.ml
 
 import io.github.matgalv2.wagewise.logging.Logger
 import io.github.matgalv2.wagewise.ml.MlError.{ DatasetCannotBeFound, EnvironmentVariableIsNotSet, SparkError }
-import io.github.matgalv2.wagewise.ml.MlError.SparkError.{ CannotCastData, MasterURLCannotBeParsed }
+import io.github.matgalv2.wagewise.ml.MlError.SparkError.{
+  CannotCastData,
+  CannotSaveModel,
+  MasterURLCannotBeParsed,
+  ModelNotFound
+}
 import io.github.matgalv2.wagewise.ml.SalaryPredictorRandomForestRegressor.assembleData
 import io.github.matgalv2.wagewise.ml.converters.employment.EmploymentModelOps
 import io.github.matgalv2.wagewise.ml.predictor.{ PredictorError, SalaryPredictor }
@@ -14,9 +19,10 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.OneHotEncoder
+import org.apache.spark.ml.util.MLWritable
 import org.apache.spark.sql
 import org.apache.spark.sql.types.{ BooleanType, DateType, FloatType, IntegerType }
-import zio.{ &, Has, IO, ZEnv, ZIO, ZLayer }
+import zio.{ &, Has, IO, UIO, ZEnv, ZIO, ZLayer }
 
 import scala.util.Try
 
@@ -42,8 +48,9 @@ final case class SalaryPredictorRandomForestRegressor(model: RandomForestRegress
 }
 
 object SalaryPredictorRandomForestRegressor {
-  private val SPARK_MASTER_URL = "local"
-  private val SPARK_APP_NAME   = "SalaryPredictor"
+  private val SPARK_MASTER_URL  = "local"
+  private val SPARK_APP_NAME    = "SalaryPredictor"
+  private val EVALUATION_METRIC = "mse"
   // Step 1: Create a SparkSession
 
   import org.apache.log4j
@@ -135,7 +142,7 @@ object SalaryPredictorRandomForestRegressor {
     .setLabelCol("rate_per_hour")
     .setFeaturesCol("features")
     .setSeed(1234L)
-    .setNumTrees(200)
+    .setNumTrees(1)
 
   private def getModel: IO[MlError, RandomForestRegressionModel] = splitData.map { x =>
     val Array(trainingData, _) = x
@@ -148,21 +155,27 @@ object SalaryPredictorRandomForestRegressor {
     val evaluator = new RegressionEvaluator()
       .setLabelCol("rate_per_hour")
       .setPredictionCol("prediction")
-      .setMetricName("rmse")
+      .setMetricName(SalaryPredictorRandomForestRegressor.EVALUATION_METRIC)
 
     evaluator.evaluate(predictions)
   }
 
-  def create: IO[MlError, SalaryPredictorRandomForestRegressor] =
+  private def saveModel(model: MLWritable, path: String = "modules/ml/infrastructure/src/main/resources/model") =
+    ZIO.fromTry(Try(model.write.overwrite().save(path))).orElseFail(CannotSaveModel(path))
+
+  private def loadModel(path: String = "modules/ml/infrastructure/src/main/resources/model") =
+    ZIO.fromOption(Try(RandomForestRegressionModel.load(path)).toOption).option
+
+  private def create =
     for {
-//      _    <- Logger.info("Creating random forest regressor")
-      rfr  <- getModel
-      rmse <- evaluate(rfr)
-//      _ = Logger.info(f"Finished training model (root mean square error: $rmse)")
+      _            <- Logger.info("Creating random forest regression model")
+      rfr          <- getModel
+      mse          <- evaluate(rfr)
+      _            <- Logger.info(f"Fitting model finished ${SalaryPredictorRandomForestRegressor.EVALUATION_METRIC}: $mse")
       sparkSession <- spark
     } yield SalaryPredictorRandomForestRegressor(rfr, sparkSession)
 
-  val layer: ZLayer[Any, MlError, Has[SalaryPredictor]] =
+  val layer: ZLayer[Has[Logger[String]], MlError, Has[SalaryPredictor]] =
     SalaryPredictorRandomForestRegressor.create.toLayer
   /*
   private val spark = SparkSession
