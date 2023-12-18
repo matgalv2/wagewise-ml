@@ -2,7 +2,7 @@ version: '1.0'
 
 services:
   app:
-    image: wagewise-ml/wagewise-ml:0.1.0-SNAPSHOT
+    image: wagewise-ml-final:latest
     container_name: app
     ports:
       - "8080:8080"
