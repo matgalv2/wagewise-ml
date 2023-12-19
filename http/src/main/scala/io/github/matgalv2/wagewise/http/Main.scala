@@ -11,5 +11,5 @@ object Main extends App {
       .exitCode
 
   private val dependencies =
-    ZEnv.live ++ Logger.layer >+> SalaryPredictorRandomForestRegressor.layer ++ DummyImpl.layer ++ HttpServer.live ++ Logger.layer
+    ZEnv.live ++ Logger.layer >+> SalaryPredictorRandomForestRegressor.layer ++ DummyImpl.layer ++ HttpServer.live
 }
