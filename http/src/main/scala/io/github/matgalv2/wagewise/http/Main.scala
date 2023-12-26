@@ -1,7 +1,7 @@
 package io.github.matgalv2.wagewise.http
 
 import io.github.matgalv2.wagewise.logging.Logger
-import io.github.matgalv2.wagewise.ml.SalaryPredictorRandomForestRegressor
+import io.github.matgalv2.wagewise.ml.SalaryPredictorRandomForest
 import zio.{ App, ExitCode, URIO, ZEnv }
 object Main extends App {
 
@@ -11,5 +11,5 @@ object Main extends App {
       .exitCode
 
   private val dependencies =
-    ZEnv.live ++ Logger.layer >+> SalaryPredictorRandomForestRegressor.layer ++ DummyImpl.layer ++ HttpServer.live
+    ZEnv.live ++ Logger.layer >+> SalaryPredictorRandomForest.layer ++ DummyImpl.layer ++ HttpServer.live
 }
