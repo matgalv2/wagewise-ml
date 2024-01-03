@@ -2,9 +2,11 @@ package io.github.matgalv2.wagewise.http
 
 import http.generated.ml.MlResource
 import io.github.matgalv2.wagewise.http.api.MlApi
+import io.github.matgalv2.wagewise.http.middleware.AuthorizationMiddleware
 import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor
 import zio.{ &, Has, RIO, Runtime, ZIO }
 import io.github.matgalv2.wagewise.logging._
+import org.http4s.{ Header, Headers }
 
 object Controller {
 
@@ -31,7 +33,7 @@ object Controller {
 
     for {
       mlResource <- makeMlResource
-    } yield mlResource.routes(handler).orNotFound
+    } yield AuthorizationMiddleware.authorize(mlResource.routes(handler)).orNotFound
   }
 
   val server: ZIO[Has[HttpServer] & Has[SalaryPredictor] & Has[DummyService] & Has[Logging], Throwable, Nothing] =
