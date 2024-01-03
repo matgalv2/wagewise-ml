@@ -44,6 +44,14 @@ object Dependencies {
     lazy val core = "com.comcast" %% "ip4s-core" % V.comcast
   }
 
+  object mongo {
+    lazy val driver = "org.mongodb.scala" %% "mongo-scala-driver" % V.mongo
+  }
+
+  object scalaj {
+    lazy val http = "org.scalaj" %% "scalaj-http" % V.scalaj
+  }
+
   object V {
     val zio         = "1.0.18" //"2.0.9"
     val http4s      = "0.21.24"
@@ -57,5 +65,7 @@ object Dependencies {
     val zioConfig   = "1.0.10"
     val slf4jCats   = "1.3.1"
     val zioLogging  = "0.5.13"
+    val mongo       = "4.11.0"
+    val scalaj      = "2.4.2"
   }
 }

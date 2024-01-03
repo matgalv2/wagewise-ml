@@ -51,7 +51,11 @@ lazy val http = (project in file("http"))
       // Cats
       Dependencies.cats.core,
       Dependencies.cats.effect,
-      Dependencies.cats.slf4jCats
+      Dependencies.cats.slf4jCats,
+      // mongo
+      Dependencies.mongo.driver,
+      // scalaj for "authorization"
+      Dependencies.scalaj.http
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
