@@ -3,7 +3,7 @@ package io.github.matgalv2.wagewise.http.api
 import http.generated.definitions.{ ErrorResponse, PredictedSalaries, PredictedSalary, Programmers }
 import http.generated.ml.{ MlHandler, PredictSalaryResponse }
 import io.github.matgalv2.wagewise.http.DummyService
-import io.github.matgalv2.wagewise.http.aplication.SalaryPredictorService
+import io.github.matgalv2.wagewise.http.application.SalaryPredictorService
 import io.github.matgalv2.wagewise.http.converters.prediction.PredictionToApiOps
 import io.github.matgalv2.wagewise.http.converters.programmer.ProgrammerModelOps
 import io.github.matgalv2.wagewise.logging.Logging
