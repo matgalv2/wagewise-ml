@@ -10,6 +10,17 @@ services:
       - 8080
     depends_on:
       - mongodb
+      - keycloak
+    environment:
+      EMPLOYMENTS_DATASET_PATH: modules/ml/infrastructure/src/main/resources/employments.csv
+      SPARK_MASTER_URL: localhost
+      KEYCLOAK_URL: http://keycloak:8088
+      KEYCLOAK_REALM: wagewise
+      KEYCLOAK_CLIENT_ID: ml
+      MONGODB_URL: mongodb:27017
+      MONGO_USER: root
+      MONGO_PASSWORD: password
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -20,5 +31,16 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
-      - ./dev/mongo-data:/data/db
+#      - ./dev/mongo-data:/data/db
+#      - X:\ProgramFiles\JetBrains\IdeaProjects\wagewise-ml\dev\mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./dev/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+  keycloak:
+    image: jboss/keycloak:latest
+    container_name: keycloak
+    ports:
+      - "8088:8080"
+    expose:
+      - 8088
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
