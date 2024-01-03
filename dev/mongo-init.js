@@ -1,15 +1,17 @@
 db.createUser({
-    user: 'root',
+    user: 'user',
     pwd: 'password',
     roles: [
         {
             role: 'readWrite',
-            db: 'admin',
+            db: 'wagewise',
         },
+        {
+            role: 'readWrite',
+            db: 'admin',
+        }
     ],
 });
 
 db = new Mongo().getDB("wagewise")
-
-db.createCollection('employments');
-db.createCollection('model_settings');
+db.employments.insert({name: "test document"})
