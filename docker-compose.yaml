@@ -12,12 +12,12 @@ services:
       - mongodb
       - keycloak
     environment:
-      EMPLOYMENTS_DATASET_PATH: modules/ml/infrastructure/src/main/resources/employments.csv
+      EMPLOYMENTS_DATASET_PATH: /opt/docker/employments.csv
       SPARK_MASTER_URL: localhost
       KEYCLOAK_URL: http://keycloak:8088
       KEYCLOAK_REALM: wagewise
       KEYCLOAK_CLIENT_ID: ml
-      MONGODB_URL: mongodb:27017
+      MONGO_URL: mongodb:27017
       MONGO_USER: root
       MONGO_PASSWORD: password
 
