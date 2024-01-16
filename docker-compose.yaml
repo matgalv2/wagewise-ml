@@ -12,7 +12,6 @@ services:
       - mongodb
       - keycloak
     environment:
-      EMPLOYMENTS_DATASET_PATH: /opt/docker/employments.csv
       SPARK_MASTER_URL: localhost
       KEYCLOAK_URL: http://keycloak:8088
       KEYCLOAK_REALM: wagewise
