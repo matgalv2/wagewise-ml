@@ -2,7 +2,6 @@ package io.github.matgalv2.wagewise.http.middleware
 
 import cats.data.{ Kleisli, OptionT }
 import cats.effect.Async
-import com.typesafe.config.{ Config, ConfigFactory }
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{ HttpRoutes, Request, Response, Status }
 import scalaj.http.Http
