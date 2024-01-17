@@ -55,7 +55,9 @@ lazy val http = (project in file("http"))
       // mongo
       Dependencies.mongo.driver,
       // scalaj for "authorization"
-      Dependencies.scalaj.http
+      Dependencies.scalaj.http,
+      // temporary for keycloak client secret
+      Dependencies.typesafe.config
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
