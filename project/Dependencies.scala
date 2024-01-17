@@ -52,6 +52,10 @@ object Dependencies {
     lazy val http = "org.scalaj" %% "scalaj-http" % V.scalaj
   }
 
+  object typesafe {
+    lazy val config = "com.typesafe" % "config" % V.typesafe
+  }
+
   object V {
     val zio         = "1.0.18" //"2.0.9"
     val http4s      = "0.21.24"
@@ -67,5 +71,6 @@ object Dependencies {
     val zioLogging  = "0.5.13"
     val mongo       = "4.11.0"
     val scalaj      = "2.4.2"
+    val typesafe    = "1.4.2"
   }
 }
