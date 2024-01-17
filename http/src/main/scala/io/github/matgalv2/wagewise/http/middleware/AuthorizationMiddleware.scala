@@ -2,6 +2,7 @@ package io.github.matgalv2.wagewise.http.middleware
 
 import cats.data.{ Kleisli, OptionT }
 import cats.effect.Async
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.{ HttpRoutes, Request, Response, Status }
 import scalaj.http.Http
@@ -14,6 +15,13 @@ object AuthorizationMiddleware {
   private val realm        = Try(System.getenv("KEYCLOAK_REALM")).getOrElse("No keycloak realm found")
   private val clientId     = Try(System.getenv("KEYCLOAK_CLIENT_ID")).getOrElse("No keycloak clientId found")
   private val clientSecret = Try(System.getenv("KEYCLOAK_CLIENT_SECRET")).getOrElse("No keycloak client secret found")
+
+  /*
+  private def clientSecret = {
+    val config: Config = ConfigFactory.load()
+    Try(config.getString("keycloak.clientSecret")).getOrElse("No keycloak client secret found")
+  }
+   */
 
   private def verifyToken(bearer_token: String) = {
     val tokenVerificationUrl = f"$keycloakURL/auth/realms/$realm/protocol/openid-connect/token/introspect"
