@@ -13,7 +13,7 @@ services:
       - keycloak
     environment:
       SPARK_MASTER_URL: localhost
-      KEYCLOAK_URL: http://keycloak:8088
+      KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: wagewise
       KEYCLOAK_CLIENT_ID: ml
       MONGO_URL: mongodb:27017
