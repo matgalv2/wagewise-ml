@@ -1,5 +1,5 @@
-# Salary prediction sevice
-Simple REST application for predicting potential salary for programmers. Dataset which model is trained on comes from [github](https://github.com/itstats/programmers_salaries).
+# Salary prediction service
+Simple REST application for predicting potential salary for programmers based on their features. Dataset which model is trained on comes from [github](https://github.com/itstats/programmers_salaries).
 
 ## API
 ### Endpoints
