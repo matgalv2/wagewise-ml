@@ -73,6 +73,7 @@ lazy val mlInfrastructure = (project in file("/modules/ml/infrastructure"))
   .settings(libraryDependencies += Dependencies.zio.zio)
   .settings(libraryDependencies += Dependencies.spark.core)
   .settings(libraryDependencies += Dependencies.spark.mllib)
+  .settings(libraryDependencies += Dependencies.scalaTest.test)
   .dependsOn(mlDomain, employmentsDomain, logging)
 
 lazy val employmentsDomain = (project in file("/modules/employments/domain"))

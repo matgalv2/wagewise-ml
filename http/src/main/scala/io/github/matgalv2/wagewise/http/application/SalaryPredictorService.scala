@@ -12,6 +12,10 @@ object SalaryPredictorService {
     val workHoursInMonth = 160
     SalaryPredictor
       .predict(programmers)
-      .map(_.map(rate_per_hour => EarningsPrediction(rate_per_hour, rate_per_hour * workHoursInMonth)))
+      .map(
+        _.map(rate_per_hour =>
+          EarningsPrediction(Math.round(rate_per_hour), Math.round(rate_per_hour * workHoursInMonth))
+        )
+      )
   }
 }

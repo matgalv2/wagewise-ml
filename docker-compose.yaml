@@ -1,11 +1,11 @@
 version: '1.0'
 
 services:
-  app:
-    image: wagewise-ml-final:latest
-    container_name: app
+  ml:
+    image: galowy/wagewise-ml:latest
+    container_name: ml
     ports:
-      - "8080:8080"
+      - "8089:8080"
     expose:
       - 8080
     depends_on:
@@ -30,16 +30,53 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
-#      - ./dev/mongo-data:/data/db
-#      - X:\ProgramFiles\JetBrains\IdeaProjects\wagewise-ml\dev\mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./dev/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./dev/mongo-population.js:/docker-entrypoint-initdb.d/mongo-population.js:ro
   keycloak:
     image: jboss/keycloak:latest
     container_name: keycloak
     ports:
       - "8088:8080"
-    expose:
-      - 8088
     environment:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
+  ocr:
+    image: kubamac/wagewise-ocr:ocr
+    container_name: ocr
+    ports:
+      - "8081:8000"
+    expose:
+      - 8000
+
+  backend:
+    image: jastomasz/backend:latest
+    container_name: backend
+    depends_on:
+      - mongodb
+      - ml
+      - ocr
+      - keycloak
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080
+    environment:
+      DB_HOST: mongodb
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: product
+      DB_PORT: 27017
+      SALARY_URL: ml
+      SALARY_PORT: 8080
+      SALARY_END: predict-salary
+    stdin_open: true
+
+  frontend:
+    image: pkrakowiakk/ww-frontend
+#    image: frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000

@@ -6,7 +6,9 @@ import io.github.matgalv2.wagewise.http.middleware.AuthorizationMiddleware
 import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor
 import zio.{ &, Has, RIO, Runtime, ZIO }
 import io.github.matgalv2.wagewise.logging._
-import org.http4s.{ Header, Headers }
+import org.http4s.server.middleware.{ CORS, CORSConfig }
+
+import scala.concurrent.duration.DurationInt
 
 object Controller {
 
@@ -30,10 +32,10 @@ object Controller {
   private val combineRoutes = {
     import org.http4s.implicits._
     import zio.interop.catz._
-
+    val methodConfig = CORSConfig(anyOrigin = true, anyMethod = true, allowCredentials = true, maxAge = 1.day.toSeconds)
     for {
       mlResource <- makeMlResource
-    } yield AuthorizationMiddleware.authorize(mlResource.routes(handler)).orNotFound
+    } yield CORS(AuthorizationMiddleware.authorize(mlResource.routes(handler)), methodConfig).orNotFound
   }
 
   val server: ZIO[Has[HttpServer] & Has[SalaryPredictor] & Has[DummyService] & Has[Logging], Throwable, Nothing] =

@@ -9,6 +9,10 @@ db.createUser({
         {
             role: 'readWrite',
             db: 'admin',
+        },
+        {
+            role: 'readWrite',
+            db: 'product',
         }
     ],
 });

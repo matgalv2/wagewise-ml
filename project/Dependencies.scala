@@ -56,6 +56,10 @@ object Dependencies {
     lazy val config = "com.typesafe" % "config" % V.typesafe
   }
 
+  object scalaTest {
+    lazy val test = "org.scalatest" %% "scalatest" % V.scalaTest % Test
+  }
+
   object V {
     val zio         = "1.0.18" //"2.0.9"
     val http4s      = "0.21.24"
@@ -72,5 +76,6 @@ object Dependencies {
     val mongo       = "4.11.0"
     val scalaj      = "2.4.2"
     val typesafe    = "1.4.2"
+    val scalaTest   = "3.2.17"
   }
 }
