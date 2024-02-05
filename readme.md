@@ -1,6 +1,14 @@
 # Salary prediction service
 Simple REST application for predicting potential salary for programmers based on their features. Dataset which model is trained on comes from [github](https://github.com/itstats/programmers_salaries).
 
+Technology stack:
+* Scala
+* ZIO
+* HTTP4S
+* MLlib Spark
+* OpenAPI
+* Guardrail
+
 ## API
 ### Endpoints
     /predict-salary 
