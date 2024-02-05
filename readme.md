@@ -43,7 +43,7 @@ Simple REST application for predicting potential salary for programmers. Dataset
 ## Attributes description
 | Attribute | Domain | Type |
 | ---------- | --------- | ---------- |
-| id | UUID | String |
+| id | uuid | string |
 | date_of_employment | date | date |
 | sex | [M, F] | enum |
 | country | [Russia, Greece, France, Germany, Poland, United Kingdom, Spain, Sweden, Italy] | enum |
