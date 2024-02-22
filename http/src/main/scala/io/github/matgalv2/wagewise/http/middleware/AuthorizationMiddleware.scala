@@ -43,7 +43,7 @@ object AuthorizationMiddleware {
     }
   }
 
-  def authorize[F[_]: Async](service: HttpRoutes[F]): HttpRoutes[F] = Kleisli { req: Request[F] =>
+  def authorization[F[_]: Async](service: HttpRoutes[F]): HttpRoutes[F] = Kleisli { req: Request[F] =>
     val unauthorized = OptionT.pure(Response[F](Status.Unauthorized))
 
     req.headers.get(bearerToken) match {
