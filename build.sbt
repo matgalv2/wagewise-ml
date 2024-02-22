@@ -48,16 +48,17 @@ lazy val http = (project in file("http"))
       Dependencies.zio.config.core,
       Dependencies.zio.config.typesafeConfig,
       Dependencies.zio.config.magnolia,
+      Dependencies.zio.magic,
+      // Comcast
+      Dependencies.comcast.core,
       // Cats
       Dependencies.cats.core,
       Dependencies.cats.effect,
       Dependencies.cats.slf4jCats,
       // mongo
       Dependencies.mongo.driver,
-      // scalaj for "authorization"
-      Dependencies.scalaj.http,
-      // temporary for keycloak client secret
-      Dependencies.typesafe.config
+      // Scalaj for naive authorization
+      Dependencies.scalaj.http
     )
   )
   .settings(dependencyOverrides += Dependencies.comcast.core)
