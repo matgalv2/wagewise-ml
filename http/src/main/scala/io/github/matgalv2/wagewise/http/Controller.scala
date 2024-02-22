@@ -6,7 +6,6 @@ import io.github.matgalv2.wagewise.http.middleware.AuthorizationMiddleware
 import io.github.matgalv2.wagewise.ml.predictor.SalaryPredictor
 import zio.{ &, Has, RIO, Runtime, ZIO }
 import io.github.matgalv2.wagewise.logging._
-import org.http4s.{ Header, Headers }
 
 object Controller {
 
@@ -27,20 +26,31 @@ object Controller {
     */
   private val handler = new MlApi()
 
-  private val combineRoutes = {
+  val combinedRoutes = {
     import org.http4s.implicits._
     import zio.interop.catz._
 
     for {
       mlResource <- makeMlResource
-    } yield AuthorizationMiddleware.authorize(mlResource.routes(handler)).orNotFound
+    } yield mlResource.routes(handler).orNotFound
   }
 
-  val server: ZIO[Has[HttpServer] & Has[SalaryPredictor] & Has[DummyService] & Has[Logging], Throwable, Nothing] =
+  private val authedRoutes = {
+    import org.http4s.implicits._
+    import zio.interop.catz._
+
     for {
-      combinedRoutes <- combineRoutes
+      mlResource <- makeMlResource
+    } yield AuthorizationMiddleware.authorization(mlResource.routes(handler)).orNotFound
+  }
+
+  val server =
+    for {
+      combinedRoutes <- combinedRoutes
       binding        <- HttpServer.bindServer(combinedRoutes)
-      _              <- Logger.info(f"Starting server at ${HttpServer.host}:${HttpServer.port}")
-      res            <- binding.use(_ => ZIO.never)
+      host           <- HttpServer.host
+      port           <- HttpServer.port
+      _              <- Logger.info(f"Starting server at $host:$port")
+      res            <- binding.useForever
     } yield res
 }
